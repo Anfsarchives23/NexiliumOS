@@ -1,39 +1,40 @@
 name: Build NexiliumOS ISO
 
 on:
-   workflow_dispatch:
-   push:
+  workflow_dispatch:
+  push:
     branches: [main]
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: debian:trixie
+      options: --privileged
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install live-build depedencies
+      - name: Install live-build dependencies
         run: |
-          sudo apt update
-          sudo apt remove -y live-build
-          sudo apt install -y debootstrap squashfs-tools xorriso isolinux syslinux-common syslinux-utils wget debian-archive-keyring
-          wget http://deb.debian.org/debian/pool/main/l/live-build/live-build_20250814_all.deb
-          sudo dpkg -i live-build_20250814_all.deb || sudo apt-get install -f -y
-          
-      - name: Ensure hooks ae executable
+          apt update
+          apt install -y live-build debootstrap squashfs-tools xorriso isolinux syslinux-common syslinux-utils debian-archive-keyring
+
+      - name: Ensure hooks are executable
         run: chmod +x nexiliumos/config/hooks/normal/*.hook.chroot
 
       - name: Configure live-build
         run: |
           cd nexiliumos
-          lb config --mode debian --distribution trixie --architecture amd64 --mirror-bootstrap http://deb.debian.org/debian --mirror-chroot http://deb.debian.org/debian --mirror-binary http://deb.debian.org/debian --security false --debian-installer none
+          lb config --distribution trixie --architecture amd64
 
       - name: Build ISO
         run: |
           cd nexiliumos
-          sudo lb build
+          lb build
 
       - name: Upload ISO as artifact
         uses: actions/upload-artifact@v4
-        with: 
+        with:
           name: nexiliumos-iso
           path: nexiliumos/*.iso
