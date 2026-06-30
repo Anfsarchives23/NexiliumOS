@@ -34,7 +34,7 @@ jobs:
 
       - name: Upload Gofile
         run: |
-          RESPONSE=$(curl -s -F "file=@output/lakeOS.iso" "https://upload.gofile.io/uploadfile?folderId=j3q")
+          RESPONSE=$(curl -s -F "file=@output/NexiliumOS.iso" "https://upload.gofile.io/uploadfile?folderId=j3q")
           echo "Response: $RESPONSE"
           LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
           echo "Link: $LINK"
