@@ -1,7 +1,0 @@
-#!/bin/sh
-set -e
-cat > /etc/apt/preferences.d/block-casper << 'EOF'
-Package: casper
-Pin: release *
-Pin-Priority: -1
-EOF

@@ -1,3 +1,0 @@
-#!/bin/sh
-set -e
-apt-get install --yes live-boot live-config live-config-systemd 2>/dev/null || true
