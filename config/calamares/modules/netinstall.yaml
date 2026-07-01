@@ -1,1 +1,92 @@
+# Seletor de ambiente desktop do instalador ONLINE do NexiliumOS.
+#
+# Esse arquivo só é lido quando há internet (ver netinstall.conf). O
+# offline install nunca chega aqui, e continua com o KDE Plasma que já
+# vem pronto no squashfs.
+#
+# ATENÇÃO / PRECISA TESTAR NO SEU AMBIENTE:
+# - O prefixo "-" antes do nome de um pacote marca ele pra REMOÇÃO em vez
+#   de instalação (recurso documentado do módulo netinstall do Calamares).
+#   Isso é usado aqui pra tirar o KDE quando outro desktop é escolhido.
+#   Teste se isso realmente remove no backend apt igual remove no pacman
+#   (a maioria dos exemplos que existem por aí é de distros baseadas em
+#   Arch/pacman).
+# - O netinstall mostra os grupos como CHECKBOX (multi-seleção), não como
+#   rádio/exclusivo nativo. Não existe um "escolha só 1" nativo aqui.
+#   Deixei os grupos com selected: false por padrão e descrições avisando
+#   pra marcar só um. Se quiser forçar exclusividade de verdade, a
+#   alternativa é usar o módulo "packagechooser" em modo exclusive — mas
+#   aí perde o auto-skip-quando-offline, que foi o requisito principal.
+# - Confirme se "task-budgie-desktop" existe nos repositórios Debian
+#   trixie que você está usando (pacote de metagrupo, pode variar).
 
+- name: "MATE"
+  description: "Ambiente clássico, leve e estável, baseado no GNOME 2."
+  selected: false
+  hidden: false
+  packages:
+    - task-mate-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+
+- name: "GNOME"
+  description: "Ambiente moderno e minimalista, padrão de muitas distros."
+  selected: false
+  hidden: false
+  packages:
+    - task-gnome-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+
+- name: "KDE Plasma"
+  description: "Ambiente padrão do NexiliumOS (já vem pronto na imagem)."
+  selected: true
+  hidden: false
+  packages:
+    - task-kde-desktop
+
+- name: "Cinnamon"
+  description: "Ambiente elegante e tradicional, usado pelo Linux Mint."
+  selected: false
+  hidden: false
+  packages:
+    - task-cinnamon-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+
+- name: "LXQt"
+  description: "Ambiente leve baseado em Qt, ótimo para hardware modesto."
+  selected: false
+  hidden: false
+  packages:
+    - task-lxqt-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+
+- name: "LXDE"
+  description: "Ambiente leve baseado em GTK, focado em baixo consumo."
+  selected: false
+  hidden: false
+  packages:
+    - task-lxde-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+
+- name: "XFCE"
+  description: "Ambiente leve, estável e altamente configurável."
+  selected: false
+  hidden: false
+  packages:
+    - task-xfce-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+
+- name: "Budgie Desktop"
+  description: "Ambiente moderno focado em simplicidade e elegância visual."
+  selected: false
+  hidden: false
+  packages:
+    - task-budgie-desktop
+    - "-task-kde-desktop"
+    - "-kde-plasma-desktop"
+    
