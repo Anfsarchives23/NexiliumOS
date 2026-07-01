@@ -23,7 +23,7 @@ apt-get install -y \
     systemd-sysv \
     dbus
 
-echo "==> Instalando MATE + LightDM..."
+echo "==> Instalando MATE Desktop..."
 apt-get install -y \
     mate-desktop-environment \
     lightdm \
@@ -31,11 +31,11 @@ apt-get install -y \
     slick-greeter \
     mate-terminal \
     caja \
-    firefox-esr \
-    network-manager-gnome
+    marco \
+    firefox-esr
 
-echo "==> Configurando LightDM com Slick Greeter..."
-mkdir -p /etc/lightdm
+echo "==> Configurando LightDM..."
+mkdir -p /etc/lightdm/lightdm.conf.d
 cat > /etc/lightdm/lightdm.conf.d/50-nexilium-greeter.conf << 'GREETER'
 [Seat:*]
 greeter-session=slick-greeter
@@ -51,7 +51,6 @@ draw-user-backgrounds=false
 show-hostname=true
 SLICK
 
-echo "==> Habilitando serviços..."
 systemctl enable lightdm
 systemctl enable NetworkManager
 
@@ -59,7 +58,7 @@ echo "==> Criando usuário matheus..."
 useradd -m -s /bin/bash matheus
 echo "matheus:matheus" | chpasswd
 passwd -u matheus
-usermod -aG sudo,audio,video,plugdev,netdev matheus
+usermod -aG sudo,audio,video,plugdev matheus
 
 echo "==> Identidade do sistema..."
 cat > /etc/os-release << 'OSRELEASE'
@@ -73,21 +72,22 @@ OSRELEASE
 
 echo "==> Configurando autologin LightDM..."
 mkdir -p /etc/lightdm/lightdm.conf.d
-cat > /etc/lightdm/lightdm.conf.d/60-autologin.conf << 'AUTOLOGIN'
+cat > /etc/lightdm/lightdm.conf.d/autologin.conf << 'LIGHTDM'
 [Seat:*]
 autologin-user=matheus
 autologin-user-timeout=0
-autologin-session=mate
-AUTOLOGIN
+user-session=mate
+LIGHTDM
 
-systemctl set-default graphical.target
-
-# Garante sources.list correto no sistema live
-cat > /etc/apt/sources.list << 'EOF'
+echo "==> Garantindo sources.list correto no live..."
+cat > /etc/apt/sources.list << 'SOURCES'
 deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware
 deb http://security.debian.org/debian-security trixie-security main
 deb http://deb.debian.org/debian trixie-updates main
-EOF
+SOURCES
+
+echo "==> Forçando target gráfico..."
+systemctl set-default graphical.target
 
 echo "==> Limpando..."
 apt-get clean
