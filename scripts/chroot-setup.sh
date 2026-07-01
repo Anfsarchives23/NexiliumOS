@@ -12,8 +12,8 @@ HOSTS
 apt-get update
 
 echo "==> Carregando lista de pacotes..."
-# shellcheck source=packages.sh
-source /tmp/packages.sh
+# shellcheck source=packages.list
+source /tmp/packages.list
 
 echo "==> Instalando todos os pacotes do NexiliumOS (${#PACKAGES[@]} pacotes)..."
 apt-get install -y "${PACKAGES[@]}"
@@ -41,7 +41,15 @@ echo "==> Criando atalho do instalador na área de trabalho..."
 mkdir -p /etc/skel/Desktop
 if [ -f /usr/share/applications/calamares.desktop ]; then
     cp /usr/share/applications/calamares.desktop /etc/skel/Desktop/calamares.desktop
+    # Troca o nome exibido no ícone/menu de "Install Debian" pra
+    # "Install NexiliumOS" (o pacote calamares do Debian traz esse Name=
+    # hardcoded no .desktop; sobrescrevemos aqui).
+    sed -i 's/^Name=.*/Name=Install NexiliumOS/' /etc/skel/Desktop/calamares.desktop
+    sed -i '/^Name\[.*\]=/d' /etc/skel/Desktop/calamares.desktop
     chmod +x /etc/skel/Desktop/calamares.desktop
+    # Faz o mesmo no launcher do menu de aplicativos, não só no atalho da área de trabalho
+    sed -i 's/^Name=.*/Name=Install NexiliumOS/' /usr/share/applications/calamares.desktop
+    sed -i '/^Name\[.*\]=/d' /usr/share/applications/calamares.desktop
 fi
 
 echo "==> Liberando o Calamares sem pedir senha (usuários do grupo sudo)..."
@@ -167,11 +175,11 @@ ln -sf /etc/machine-id /var/lib/dbus/machine-id
 
 echo "==> Guardando cópia permanente da lista de pacotes no sistema..."
 mkdir -p /etc/nexiliumos
-cp /tmp/packages.sh /etc/nexiliumos/packages.sh
-chmod 644 /etc/nexiliumos/packages.sh
+cp /tmp/packages.list /etc/nexiliumos/packages.list
+chmod 644 /etc/nexiliumos/packages.list
 
 echo "==> Limpando..."
 apt-get clean
 apt-get autoremove -y
 rm -rf /var/lib/apt/lists/*
-rm -f /tmp/chroot-setup.sh /tmp/packages.sh
+rm -f /tmp/chroot-setup.sh /tmp/packages.list
