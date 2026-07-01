@@ -37,6 +37,17 @@ apt-get install -y \
     nautilus \
     firefox-esr
 
+echo "==> Instalando dependências essenciais de sessão/compositor (evita tela travada no cursor+wallpaper)..."
+apt-get install -y \
+    dbus-user-session \
+    gsettings-desktop-schemas \
+    gnome-settings-daemon \
+    gnome-keyring \
+    xserver-xorg \
+    mesa-utils \
+    libgl1-mesa-dri \
+    libglx-mesa0
+
 echo "==> Instalando tema, ícones e fontes..."
 apt-get install -y \
     arc-theme \
@@ -160,6 +171,11 @@ deb http://deb.debian.org/debian trixie main contrib non-free non-free-firmware
 deb http://security.debian.org/debian-security trixie-security main
 deb http://deb.debian.org/debian trixie-updates main
 SOURCES
+
+echo "==> Configurando fallback de renderização por software (evita trava do Mutter/Budgie em VMs sem GPU 3D)..."
+if ! grep -q "LIBGL_ALWAYS_SOFTWARE" /etc/environment; then
+    echo "LIBGL_ALWAYS_SOFTWARE=1" >> /etc/environment
+fi
 
 echo "==> Forçando target gráfico..."
 systemctl set-default graphical.target
