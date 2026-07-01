@@ -22,7 +22,8 @@ apt-get install -y \
     live-config-systemd \
     systemd-sysv \
     dbus \
-    policykit-1 \
+    polkitd \
+    pkexec \
     accountsservice
 
 echo "==> Instalando MATE Desktop..."
