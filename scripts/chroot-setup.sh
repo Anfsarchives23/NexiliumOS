@@ -26,15 +26,15 @@ apt-get install -y \
     pkexec \
     accountsservice
 
-echo "==> Instalando MATE Desktop..."
+echo "==> Instalando Budgie Desktop..."
 apt-get install -y \
-    mate-desktop-environment \
+    budgie-desktop \
+    budgie-desktop-settings \
     lightdm \
     lightdm-gtk-greeter \
     slick-greeter \
-    mate-terminal \
-    caja \
-    marco \
+    gnome-terminal \
+    nautilus \
     firefox-esr
 
 echo "==> Instalando tema, ícones e fontes..."
@@ -43,6 +43,27 @@ apt-get install -y \
     papirus-icon-theme \
     fonts-noto \
     dconf-cli
+
+echo "==> Instalando Calamares (instalador)..."
+apt-get install -y \
+    calamares \
+    calamares-settings-debian \
+    parted \
+    dosfstools \
+    rsync \
+    squashfs-tools \
+    grub-pc-bin \
+    grub-efi-amd64-bin \
+    grub-common \
+    os-prober \
+    efibootmgr
+
+echo "==> Criando atalho do instalador na área de trabalho..."
+mkdir -p /etc/skel/Desktop
+if [ -f /usr/share/applications/calamares.desktop ]; then
+    cp /usr/share/applications/calamares.desktop /etc/skel/Desktop/calamares.desktop
+    chmod +x /etc/skel/Desktop/calamares.desktop
+fi
 
 echo "==> Criando usuário liveuser..."
 useradd -m -s /bin/bash liveuser
@@ -67,8 +88,8 @@ cat > /etc/lightdm/lightdm.conf.d/50-nexilium.conf << 'LIGHTDM'
 greeter-session=slick-greeter
 autologin-user=liveuser
 autologin-user-timeout=0
-autologin-session=mate
-user-session=mate
+autologin-session=budgie-desktop
+user-session=budgie-desktop
 LIGHTDM
 
 cat > /etc/lightdm/lightdm.conf << 'LIGHTDMGLOBAL'
@@ -97,24 +118,22 @@ systemctl enable accounts-daemon
 echo "==> Aplicando tema/ícones/fontes padrão para todos os usuários (via dconf)..."
 mkdir -p /etc/dconf/db/local.d
 cat > /etc/dconf/db/local.d/00-nexilium-appearance << 'DCONF'
-[org/mate/desktop/interface]
+[org/gnome/desktop/interface]
 gtk-theme='Arc-Dark'
 icon-theme='Papirus-Dark'
 font-name='Noto Sans 10'
 document-font-name='Noto Sans 10'
 monospace-font-name='Noto Sans Mono 10'
-
-[org/mate/marco/general]
-theme='Arc-Dark'
-
-[org/mate/desktop/background]
-picture-filename=''
-primary-color='#1a1a1a'
-color-shading-type='solid'
-
-[org/mate/desktop/peripherals/mouse]
 cursor-theme='Adwaita'
 cursor-size=24
+
+[org/gnome/desktop/wm/preferences]
+theme='Arc-Dark'
+
+[org/gnome/desktop/background]
+picture-uri=''
+primary-color='#1a1a1a'
+color-shading-type='solid'
 DCONF
 
 mkdir -p /etc/dconf/db/local.d/locks
