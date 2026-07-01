@@ -160,6 +160,9 @@ deb http://security.debian.org/debian-security trixie-security main
 deb http://deb.debian.org/debian trixie-updates main
 SOURCES
 
+echo "==> Atualizando índice do apt (sources.list mudou, senão contrib/non-free-firmware não aparecem)..."
+apt-get update
+
 echo "==> Instalando VirtualBox Guest Additions (aceleração gráfica em VM)..."
 apt-get install -y \
     virtualbox-guest-utils \
