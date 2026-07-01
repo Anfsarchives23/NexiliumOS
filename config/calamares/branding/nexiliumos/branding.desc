@@ -1,1 +1,37 @@
+---
+componentName: nexiliumos
+
+# Estilo de janela do welcome (mantém o padrão do Calamares, só troca textos/imagem)
+welcomeStyleCalamares: true
+welcomeExpandingLogo: true
+
+strings:
+    productName:          "NexiliumOS"
+    shortProductName:     "NexiliumOS"
+    version:               "1.0"
+    shortVersion:          "1.0"
+    # versionedName/shortVersionedName SEM número de versão de propósito:
+    # é isso que aparece na frase "Welcome to the Calamares installer for %1"
+    versionedName:         "NexiliumOS"
+    shortVersionedName:    "NexiliumOS"
+    bootloaderEntryName:   "NexiliumOS"
+    productUrl:            "https://github.com/zanfss0/NexiliumOS"
+    supportUrl:            "https://github.com/zanfss0/NexiliumOS/issues"
+    knownIssuesUrl:        "https://github.com/zanfss0/NexiliumOS/issues"
+    releaseNotesUrl:       "https://github.com/zanfss0/NexiliumOS/releases"
+
+images:
+    # productLogo/productIcon continuam usados em outras telas (sobre, etc).
+    productLogo:           "logo.png"
+    productIcon:            "logo.png"
+    # productWelcome é a imagem central da tela de boas-vindas (onde aparecia
+    # o logo do Debian). Aponta pra um PNG 1x1 transparente = fica sem nada,
+    # por enquanto, até vocês terem uma arte definitiva.
+    productWelcome:         "welcome-blank.png"
+
+style:
+   sidebarBackground:    "#1B1D23"
+   sidebarText:          "#FFFFFF"
+   sidebarTextSelect:    "#3D7EFF"
+   sidebarTextHighlight: "#3D7EFF"
 
