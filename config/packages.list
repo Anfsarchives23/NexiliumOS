@@ -1,21 +1,58 @@
 # Pacotes base do NexiliumOS
+
+# Utilitários essenciais
 sudo
 curl
 wget
 git
 nano
+
+# Rede
 network-manager
-network-manager-gnome
+plasma-nm
+
+# Live system
 live-boot
 live-boot-initramfs-tools
 live-config
 live-config-systemd
 systemd-sysv
+
+# Base de sessão / D-Bus / Polkit
 dbus
-mate-desktop-environment
-lightdm
-lightdm-gtk-greeter
-slick-greeter
-mate-terminal
-caja
+dbus-user-session
+polkitd
+pkexec
+accountsservice
+locales
+
+# Desktop: KDE Plasma
+task-kde-desktop
+plasma-workspace-wayland
+gsettings-desktop-schemas
+gnome-keyring
+
+# Display Manager: GDM
+gdm3
+
+# Suporte gráfico (Xorg/Xwayland + fallback de renderização)
+xserver-xorg
+mesa-utils
+libgl1-mesa-dri
+libglx-mesa0
+
+# Navegador
 firefox-esr
+
+# Instalador
+calamares
+calamares-settings-debian
+parted
+dosfstools
+rsync
+squashfs-tools
+grub-pc-bin
+grub-efi-amd64-bin
+grub-common
+os-prober
+efibootmgr
