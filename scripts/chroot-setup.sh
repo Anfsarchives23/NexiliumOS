@@ -29,7 +29,7 @@ apt-get install -y \
 echo "==> Instalando Budgie Desktop..."
 apt-get install -y \
     budgie-desktop \
-    budgie-desktop-settings \
+    budgie-control-center \
     lightdm \
     lightdm-gtk-greeter \
     slick-greeter \
