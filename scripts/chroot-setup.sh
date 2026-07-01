@@ -37,6 +37,13 @@ apt-get install -y \
     marco \
     firefox-esr
 
+echo "==> Instalando tema, ícones e fontes..."
+apt-get install -y \
+    arc-theme \
+    papirus-icon-theme \
+    fonts-noto \
+    dconf-cli
+
 echo "==> Criando usuário liveuser..."
 useradd -m -s /bin/bash liveuser
 echo "liveuser:live" | chpasswd
@@ -44,11 +51,9 @@ passwd -u liveuser
 usermod -aG sudo,audio,video,plugdev liveuser
 
 echo "==> Habilitando login sem senha para liveuser (PAM)..."
-# Cria o grupo usado pelo PAM do LightDM para permitir autologin sem senha
 groupadd -f nopasswdlogin
 usermod -aG nopasswdlogin liveuser
 
-# Garante que o pam_succeed_if do lightdm-autologin aceite o grupo acima
 if [ -f /etc/pam.d/lightdm-autologin ]; then
     if ! grep -q "nopasswdlogin" /etc/pam.d/lightdm-autologin; then
         sed -i '1i auth   required   pam_succeed_if.so user ingroup nopasswdlogin' /etc/pam.d/lightdm-autologin
@@ -66,7 +71,6 @@ autologin-session=mate
 user-session=mate
 LIGHTDM
 
-# Garante o greeter também no bloco [LightDM] global, como fallback
 cat > /etc/lightdm/lightdm.conf << 'LIGHTDMGLOBAL'
 [LightDM]
 greeter-session=slick-greeter
@@ -75,9 +79,9 @@ LIGHTDMGLOBAL
 cat > /etc/lightdm/slick-greeter.conf << 'SLICK'
 [Greeter]
 background=#1a1a1a
-theme-name=Adwaita-dark
-icon-theme-name=Adwaita
-font-name=Sans 10
+theme-name=Arc-Dark
+icon-theme-name=Papirus-Dark
+font-name=Noto Sans 10
 draw-user-backgrounds=false
 show-hostname=true
 SLICK
@@ -90,6 +94,37 @@ systemctl enable lightdm
 systemctl enable NetworkManager
 systemctl enable accounts-daemon
 
+echo "==> Aplicando tema/ícones/fontes padrão para todos os usuários (via dconf)..."
+mkdir -p /etc/dconf/db/local.d
+cat > /etc/dconf/db/local.d/00-nexilium-appearance << 'DCONF'
+[org/mate/desktop/interface]
+gtk-theme='Arc-Dark'
+icon-theme='Papirus-Dark'
+font-name='Noto Sans 10'
+document-font-name='Noto Sans 10'
+monospace-font-name='Noto Sans Mono 10'
+
+[org/mate/marco/general]
+theme='Arc-Dark'
+
+[org/mate/desktop/background]
+picture-filename=''
+primary-color='#1a1a1a'
+color-shading-type='solid'
+
+[org/mate/desktop/peripherals/mouse]
+cursor-theme='Adwaita'
+cursor-size=24
+DCONF
+
+mkdir -p /etc/dconf/db/local.d/locks
+cat > /etc/dconf/db/local.d/locks/00-nexilium-appearance << 'LOCKS'
+# Deixa o tema e ícones como padrão, mas destravado -
+# o usuário pode alterar depois se quiser.
+LOCKS
+
+dconf update
+
 echo "==> Identidade do sistema..."
 cat > /etc/os-release << 'OSRELEASE'
 NAME="NexiliumOS"
@@ -97,7 +132,7 @@ VERSION="1.0"
 ID=nexiliumos
 ID_LIKE=debian
 PRETTY_NAME="NexiliumOS 1.0"
-HOME_URL="https://github.com/Anfsarchives23/NexiliumOS"
+HOME_URL="https://github.com/zanfss0/NexiliumOS"
 OSRELEASE
 
 echo "==> Garantindo sources.list correto no live..."
