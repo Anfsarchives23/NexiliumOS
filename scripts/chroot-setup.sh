@@ -21,7 +21,9 @@ apt-get install -y \
     live-config \
     live-config-systemd \
     systemd-sysv \
-    dbus
+    dbus \
+    policykit-1 \
+    accountsservice
 
 echo "==> Instalando MATE Desktop..."
 apt-get install -y \
@@ -34,12 +36,40 @@ apt-get install -y \
     marco \
     firefox-esr
 
-echo "==> Configurando LightDM..."
+echo "==> Criando usuário liveuser..."
+useradd -m -s /bin/bash liveuser
+echo "liveuser:live" | chpasswd
+passwd -u liveuser
+usermod -aG sudo,audio,video,plugdev liveuser
+
+echo "==> Habilitando login sem senha para liveuser (PAM)..."
+# Cria o grupo usado pelo PAM do LightDM para permitir autologin sem senha
+groupadd -f nopasswdlogin
+usermod -aG nopasswdlogin liveuser
+
+# Garante que o pam_succeed_if do lightdm-autologin aceite o grupo acima
+if [ -f /etc/pam.d/lightdm-autologin ]; then
+    if ! grep -q "nopasswdlogin" /etc/pam.d/lightdm-autologin; then
+        sed -i '1i auth   required   pam_succeed_if.so user ingroup nopasswdlogin' /etc/pam.d/lightdm-autologin
+    fi
+fi
+
+echo "==> Configurando LightDM (greeter + autologin em um único arquivo)..."
 mkdir -p /etc/lightdm/lightdm.conf.d
-cat > /etc/lightdm/lightdm.conf.d/50-nexilium-greeter.conf << 'GREETER'
+cat > /etc/lightdm/lightdm.conf.d/50-nexilium.conf << 'LIGHTDM'
 [Seat:*]
 greeter-session=slick-greeter
-GREETER
+autologin-user=liveuser
+autologin-user-timeout=0
+autologin-session=mate
+user-session=mate
+LIGHTDM
+
+# Garante o greeter também no bloco [LightDM] global, como fallback
+cat > /etc/lightdm/lightdm.conf << 'LIGHTDMGLOBAL'
+[LightDM]
+greeter-session=slick-greeter
+LIGHTDMGLOBAL
 
 cat > /etc/lightdm/slick-greeter.conf << 'SLICK'
 [Greeter]
@@ -51,14 +81,13 @@ draw-user-backgrounds=false
 show-hostname=true
 SLICK
 
+echo "==> Definindo slick-greeter como greeter padrão via debconf..."
+echo "slick-greeter shared/default-x-display-manager select lightdm" | debconf-set-selections
+echo "lightdm shared/default-x-display-manager select lightdm" | debconf-set-selections
+
 systemctl enable lightdm
 systemctl enable NetworkManager
-
-echo "==> Criando usuário matheus..."
-useradd -m -s /bin/bash matheus
-echo "matheus:matheus" | chpasswd
-passwd -u matheus
-usermod -aG sudo,audio,video,plugdev matheus
+systemctl enable accounts-daemon
 
 echo "==> Identidade do sistema..."
 cat > /etc/os-release << 'OSRELEASE'
@@ -69,15 +98,6 @@ ID_LIKE=debian
 PRETTY_NAME="NexiliumOS 1.0"
 HOME_URL="https://github.com/Anfsarchives23/NexiliumOS"
 OSRELEASE
-
-echo "==> Configurando autologin LightDM..."
-mkdir -p /etc/lightdm/lightdm.conf.d
-cat > /etc/lightdm/lightdm.conf.d/autologin.conf << 'LIGHTDM'
-[Seat:*]
-autologin-user=matheus
-autologin-user-timeout=0
-user-session=mate
-LIGHTDM
 
 echo "==> Garantindo sources.list correto no live..."
 cat > /etc/apt/sources.list << 'SOURCES'
