@@ -1,14 +1,15 @@
 # Pacotes base do NexiliumOS
 
-# Kernel
-linux-image-amd64
-
 # Utilitários essenciais
 sudo
 curl
 wget
 git
 nano
+
+# Kernel
+linux-image-amd64
+linux-headers-amd64
 
 # Rede
 network-manager
@@ -60,3 +61,7 @@ grub-efi-amd64-bin
 grub-common
 os-prober
 efibootmgr
+
+# VirtualBox Guest Additions (necessário para o virtualbox-guest-dkms compilar)
+build-essential
+dkms
