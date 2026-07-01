@@ -11,58 +11,19 @@ HOSTS
 
 apt-get update
 
-echo "==> Instalando base + live system..."
-apt-get install -y \
-    sudo curl wget git nano \
-    network-manager \
-    linux-image-amd64 \
-    live-boot \
-    live-boot-initramfs-tools \
-    live-config \
-    live-config-systemd \
-    systemd-sysv \
-    dbus \
-    polkitd \
-    pkexec \
-    accountsservice \
-    locales
+echo "==> Carregando lista de pacotes..."
+# shellcheck source=packages.sh
+source /tmp/packages.sh
 
-echo "==> Instalando KDE Plasma (desktop completo)..."
-apt-get install -y \
-    task-kde-desktop \
-    firefox-esr
+echo "==> Instalando todos os pacotes do NexiliumOS (${#PACKAGES[@]} pacotes)..."
+apt-get install -y "${PACKAGES[@]}"
 
-echo "==> Instalando dependências essenciais de sessão/compositor (evita tela travada / crash no login)..."
-apt-get install -y \
-    dbus-user-session \
-    gsettings-desktop-schemas \
-    gnome-keyring \
-    xserver-xorg \
-    mesa-utils \
-    libgl1-mesa-dri \
-    libglx-mesa0
-
-echo "==> Instalando GDM3 (Display Manager) e removendo o SDDM que veio junto do KDE..."
-apt-get install -y gdm3
+echo "==> Removendo o SDDM que veio junto do KDE (usamos GDM como display manager)..."
 systemctl disable sddm 2>/dev/null || true
 apt-get purge -y sddm 2>/dev/null || true
 
 echo "gdm3 shared/default-x-display-manager select gdm3" | debconf-set-selections
 dpkg-reconfigure gdm3
-
-echo "==> Instalando Calamares (instalador)..."
-apt-get install -y \
-    calamares \
-    calamares-settings-debian \
-    parted \
-    dosfstools \
-    rsync \
-    squashfs-tools \
-    grub-pc-bin \
-    grub-efi-amd64-bin \
-    grub-common \
-    os-prober \
-    efibootmgr
 
 echo "==> Gerando locales (sem isso o KDE/GDM podem crashar ao subir a sessão)..."
 sed -i 's/^# *\(en_US.UTF-8 UTF-8\)/\1/' /etc/locale.gen
@@ -82,6 +43,18 @@ if [ -f /usr/share/applications/calamares.desktop ]; then
     cp /usr/share/applications/calamares.desktop /etc/skel/Desktop/calamares.desktop
     chmod +x /etc/skel/Desktop/calamares.desktop
 fi
+
+echo "==> Liberando o Calamares sem pedir senha (usuários do grupo sudo)..."
+mkdir -p /etc/polkit-1/rules.d
+cat > /etc/polkit-1/rules.d/45-nexilium-calamares.rules << 'POLKIT'
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.policykit.exec" &&
+        action.lookup("program").indexOf("calamares") !== -1 &&
+        subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});
+POLKIT
 
 echo "==> Criando usuário liveuser..."
 useradd -m -s /bin/bash liveuser
@@ -141,10 +114,20 @@ deb http://security.debian.org/debian-security trixie-security main
 deb http://deb.debian.org/debian trixie-updates main
 SOURCES
 
-echo "==> Configurando fallback de renderização por software (evita trava do compositor em VMs sem GPU 3D)..."
-if ! grep -q "LIBGL_ALWAYS_SOFTWARE" /etc/environment; then
-    echo "LIBGL_ALWAYS_SOFTWARE=1" >> /etc/environment
-fi
+echo "==> Instalando VirtualBox Guest Additions (aceleração gráfica em VM)..."
+apt-get install -y \
+    virtualbox-guest-utils \
+    virtualbox-guest-x11 \
+    virtualbox-guest-dkms
+# O virtualbox-guest-dkms compila o módulo do kernel usando linux-headers-amd64
+# (já incluso em packages.sh). Isso dá aceleração 3D de verdade via VMSVGA,
+# em vez de forçar renderização por software - que é o que travava o Plasma.
+# Em hardware real esses pacotes simplesmente não fazem nada (o serviço só
+# ativa se detectar que está rodando dentro do VirtualBox).
+
+systemctl enable vboxadd 2>/dev/null || true
+systemctl enable vboxadd-service 2>/dev/null || true
+systemctl enable vboxadd-x11 2>/dev/null || true
 
 echo "==> Forçando target gráfico..."
 systemctl set-default graphical.target
@@ -159,8 +142,13 @@ ln -sf /etc/machine-id /var/lib/dbus/machine-id
 # host de build), dbus e systemd-logind falham silenciosamente e a
 # sessão gráfica cai numa tela de erro logo após o login.
 
+echo "==> Guardando cópia permanente da lista de pacotes no sistema..."
+mkdir -p /etc/nexiliumos
+cp /tmp/packages.sh /etc/nexiliumos/packages.sh
+chmod 644 /etc/nexiliumos/packages.sh
+
 echo "==> Limpando..."
 apt-get clean
 apt-get autoremove -y
 rm -rf /var/lib/apt/lists/*
-rm -f /tmp/chroot-setup.sh
+rm -f /tmp/chroot-setup.sh /tmp/packages.sh
